@@ -1,5 +1,5 @@
 const express = require('express');
-const ytdl = require('@distube/ytdl-core'); // ALTERAÇÃO AQUI: Usando o fork mais robusto
+const ytdl = require('@distube/ytdl-core'); // Usando o fork mais robusto
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -15,36 +15,49 @@ app.get('/', (req, res) => {
 app.post('/download', async (req, res) => {
   const { url } = req.body;
   
-  // O link que você enviou está correto, mas vamos validar de qualquer forma
   if (!ytdl.validateURL(url)) {
     return res.status(400).send('URL inválida. Por favor, verifique o link do YouTube.');
   }
 
   try {
-    // A lógica continua a mesma, mas agora usa o fork atualizado do ytdl
-    const info = await ytdl.getInfo(url);
+    const info = await ytdl.getInfo(url, { 
+        // Adiciona um User-Agent para tentar contornar a detecção de bot
+        requestOptions: {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+            }
+        }
+    });
     
-    // Tentamos encontrar o melhor formato de áudio, mas esta verificação é principalmente informativa.
+    // A lógica continua a mesma, mas agora usa o fork atualizado do ytdl
     const audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
     
     if (audioFormats.length === 0) {
-        // Se a busca por formato falhar
         return res.status(500).send('Formato de áudio não encontrado para este vídeo. Pode ser um problema com o ytdl-core.'); 
     }
 
+    // Tenta usar o título do vídeo como nome de arquivo
     const title = info.videoDetails.title.replace(/[|/?<>"':*.]/g, '');
     const fileName = `${title}.mp3`;
 
-    // 1. Configura os cabeçalhos
+    // 1. Configura os cabeçalhos para informar o cliente sobre o arquivo
     res.header('Content-Disposition', `attachment; filename="${fileName}"`);
     res.header('Content-Type', 'audio/mpeg'); 
 
     // 2. Transmite o áudio diretamente para a resposta HTTP
-    ytdl(url, { quality: 'lowestaudio' })
+    ytdl(url, { 
+        quality: 'lowestaudio',
+        // Repete o User-Agent na requisição de download para maior compatibilidade
+        requestOptions: {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+            }
+        }
+    })
         .pipe(res); 
 
   } catch (error) {
-    // CORREÇÃO: Envia a mensagem de erro específica do ytdl-core para o cliente
+    // Envia a mensagem de erro específica do ytdl-core para o cliente
     const errorMessage = error instanceof Error ? error.message : "Erro desconhecido no servidor.";
     console.error("Erro ao processar o download:", error);
     res.status(500).send(`Erro interno ao processar o download. Detalhe: ${errorMessage}`);
