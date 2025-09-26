@@ -6,4 +6,5 @@ npm install cors
 node server.js
 
 herokulogin
-Procfile // Arquivo do heroku
+Procfile | web: node server.js // Arquivo do heroku
+heroku create baixatudo
