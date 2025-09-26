@@ -4,3 +4,6 @@ npm install ytdl-core
 npm install cors
 
 node server.js
+
+heroku domains
+url: https://baixatudo-86a38d559bf8.herokuapp.com/
