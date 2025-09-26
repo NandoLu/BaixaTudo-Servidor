@@ -4,3 +4,6 @@ npm install ytdl-core
 npm install cors
 
 node server.js
+
+herokulogin
+Procfile // Arquivo do heroku
