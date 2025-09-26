@@ -1,0 +1,6 @@
+npm init -y
+npm install express
+npm install ytdl-core 
+npm install cors
+
+node server.js
