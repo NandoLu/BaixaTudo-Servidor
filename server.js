@@ -23,10 +23,11 @@ app.post('/download', async (req, res) => {
   try {
     const info = await ytdl.getInfo(url);
     
-    // Tentamos encontrar o melhor formato de áudio
-    const format = ytdl.filterFormats(info.formats, 'audioonly')[0];
+    // Tentamos encontrar o melhor formato de áudio, mas esta verificação é principalmente informativa.
+    // O ytdl no passo 2 fará a seleção final.
+    const audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
     
-    if (!format) {
+    if (audioFormats.length === 0) {
         // Se a busca por formato falhar
         return res.status(500).send('Formato de áudio não encontrado para este vídeo. Pode ser um problema com o ytdl-core.'); 
     }
@@ -39,7 +40,10 @@ app.post('/download', async (req, res) => {
     res.header('Content-Type', 'audio/mpeg'); 
 
     // 2. Transmite o áudio diretamente para a resposta HTTP
-    ytdl(url, { format: format, quality: 'lowestaudio' })
+    // CORREÇÃO PARA ERRO 410: Removemos o formato pré-filtrado ('format: format') 
+    // e deixamos o ytdl-core selecionar a qualidade mais baixa disponível.
+    // Isso força o re-cálculo da assinatura da URL, o que geralmente resolve 410s.
+    ytdl(url, { quality: 'lowestaudio' })
         .pipe(res); 
 
   } catch (error) {
