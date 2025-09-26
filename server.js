@@ -1,5 +1,5 @@
 const express = require('express');
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core'); // ALTERAÇÃO AQUI: Usando o fork mais robusto
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,10 +21,10 @@ app.post('/download', async (req, res) => {
   }
 
   try {
+    // A lógica continua a mesma, mas agora usa o fork atualizado do ytdl
     const info = await ytdl.getInfo(url);
     
     // Tentamos encontrar o melhor formato de áudio, mas esta verificação é principalmente informativa.
-    // O ytdl no passo 2 fará a seleção final.
     const audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
     
     if (audioFormats.length === 0) {
@@ -40,9 +40,6 @@ app.post('/download', async (req, res) => {
     res.header('Content-Type', 'audio/mpeg'); 
 
     // 2. Transmite o áudio diretamente para a resposta HTTP
-    // CORREÇÃO PARA ERRO 410: Removemos o formato pré-filtrado ('format: format') 
-    // e deixamos o ytdl-core selecionar a qualidade mais baixa disponível.
-    // Isso força o re-cálculo da assinatura da URL, o que geralmente resolve 410s.
     ytdl(url, { quality: 'lowestaudio' })
         .pipe(res); 
 
