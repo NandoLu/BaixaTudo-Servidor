@@ -9,3 +9,8 @@ heroku domains
 url: https://baixatudo-86a38d559bf8.herokuapp.com/
 
 npm install @distube/ytdl-core
+
+herokulogin
+Procfile | web: node server.js // Arquivo do heroku
+heroku create baixatudo
+
